@@ -1,7 +1,9 @@
 from django.http.response import FileResponse
+# from django.utils.html import escape
 
+import bleach
 
-class RangedFileReader(object):
+class RangedFileReaderFilter(object):
     """
     Wraps a file like object with an iterator that runs over part (or all) of
     the file defined by start and stop. Blocks of block_size will be returned
@@ -9,7 +11,8 @@ class RangedFileReader(object):
     """
     block_size = 8192
 
-    def __init__(self, file_like, start=0, stop=float('inf'), block_size=None):
+    def __init__(self, file_like, start=0, stop=float('inf'), block_size=None,
+            add_filter=True):
         """
         Args:
             file_like (File): A file-like object.
@@ -20,9 +23,10 @@ class RangedFileReader(object):
         """
         self.f = file_like
         self.size = len(self.f.read())
-        self.block_size = block_size or RangedFileReader.block_size
+        self.block_size = block_size or RangedFileReaderFilter.block_size
         self.start = start
         self.stop = stop
+        self.add_filter = add_filter
 
     def __iter__(self):
         """
@@ -35,7 +39,13 @@ class RangedFileReader(object):
             if not data:
                 break
 
-            yield data
+            try:
+                # yield data
+                yield bleach.clean(data) if self.add_filter else data
+                # yield escape(data) if self.add_filter else data
+            except TypeError as error:
+                print(error)
+                pass
             position += self.block_size
 
     def parse_range_header(self, header, resource_size):
@@ -89,24 +99,25 @@ class RangedFileReader(object):
         return ranges
 
 
-class RangedFileResponse(FileResponse):
+class RangedFileResponseFilter(FileResponse):
     """
     This is a modified FileResponse that returns `Content-Range` headers with
     the response, so browsers that request the file, can stream the response
     properly.
     """
 
-    def __init__(self, request, file, *args, **kwargs):
+    def __init__(self, request, file, add_filter, *args, **kwargs):
         """
-        RangedFileResponse constructor also requires a request, which
+        RangedFileResponseFilter constructor also requires a request, which
         checks whether range headers should be added to the response.
 
         Args:
             request(WGSIRequest): The Django request object.
             file (File): A file-like object.
         """
-        self.ranged_file = RangedFileReader(file)
-        super(RangedFileResponse, self).__init__(self.ranged_file, *args, **kwargs)
+
+        self.ranged_file = RangedFileReaderFilter(file, add_filter=add_filter)
+        super(RangedFileResponseFilter, self).__init__(self.ranged_file, *args, **kwargs)
 
         if 'HTTP_RANGE' in request.META:
             self.add_range_headers(request.META['HTTP_RANGE'])

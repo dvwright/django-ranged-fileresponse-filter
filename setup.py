@@ -8,14 +8,12 @@ tests_require = [
 ]
 
 setup(
-    name='django-ranged-fileresponse',
-    version='0.1.2',
-    description='Modified Django FileResponse that adds Content-Range headers.',
-    url='https://github.com/wearespindle/django-ranged-fileresponse',
-    author='Spindle',
-    author_email='opensource@wearespindle.com',
+    name='django-ranged-fileresponse-filter',
+    version='0.0.1',
+    description='Modified Django FileResponse that adds Content-Range headers +Bleach.',
+    url='https://github.com/dvwright/django-ranged-fileresponse-filter',
     license='MIT',
-    packages=['ranged_fileresponse'],
+    packages=['ranged_fileresponse_filter'],
     zip_safe=False,
     tests_require=tests_require,
     extras_require={

@@ -1,6 +1,10 @@
-# django-ranged-fileresponse
+# django-ranged-fileresponse-filter
 
-[![Build Status](https://travis-ci.org/wearespindle/django-ranged-fileresponse.svg?branch=master)](https://travis-ci.org/wearespindle/django-ranged-fileresponse)
+This package adds the ability strip `xss` and other malicious content from files upon opening them within a `Django` context.
+
+This package is the same code as [django-ranged-fileresponse](https://github.com/wearespindle/django-ranged-fileresponse) but with [bleach](https://github.com/mozilla/bleach) added
+
+Upon reading the content of a file, it passes it through `bleach`
 
 If you're in the situation that you have an authenticated Django view that returns
 files for download, you may have noticed that Safari 9.x doesn't play audio files
@@ -18,21 +22,32 @@ Maintained
 
 ## Usage
 
+For now, it uses a simple bool flag to toggle filtering on/off 
+
+```
+RangedFileResponseFilter(request, open(filename, 'r'), content_type='audio/wav', add_filter=True)
+```
+
+setting add_filter=False disables the need for this module you may as well use: `django-ranged-fileresponse-filter`
+
+TODO: in the future you will be able to have more control over what `bleach` filters.
+
+
 ### Requirements
 
  * django >= 1.4
 
 ### Installation
 
-    pip install django-ranged-fileresponse
+    pip install django-ranged-fileresponse-filter
 
 ### Running
 
-    from ranged_fileresponse import RangedFileResponse
+    from ranged_fileresponse_filter import RangedFileResponseFilter
 
     def some_proxy_view(request):
         filename = 'myfile.wav'
-        response = RangedFileResponse(request, open(filename, 'r'), content_type='audio/wav')
+        response = RangedFileResponseFilter(request, open(filename, 'r'), content_type='audio/wav', add_filter=True)
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
         return response
 
@@ -66,4 +81,4 @@ We will be happy to answer your other questions at opensource@wearespindle.com
 
 ## License
 
-django-ranged-fileresponse is made available under the MIT license. See the [LICENSE file](LICENSE) for more info.
+django-ranged-fileresponse-filter is made available under the MIT license. See the [LICENSE file](LICENSE) for more info.
